@@ -26,6 +26,7 @@ typedef struct {
 } rectf;
 
 #define FONT_TEXTURE_DIMENSION 1024
+#define DRAW_BATCH_MAX_VERTS 16380
 
 /* One vertex for terminal batch: XYZ + diffuse + UV (matches D3DFVF_XYZ|D3DFVF_DIFFUSE|D3DFVF_TEX1) */
 struct terminal_vertex_t {
@@ -334,11 +335,18 @@ void Drawing::DrawTerminal(const char* buffer, uint32_t color)
     mD3dDevice->Clear(0L, NULL, D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER|D3DCLEAR_STENCIL, 0xff000000, 1.0f, 0L);
 
     mD3dDevice->SetTexture(0, font_texture);
-    mD3dDevice->DrawPrimitiveUP(
-        D3DPT_TRIANGLELIST,
-        nVerts / 3,
-        s_terminalVerts,
-        sizeof(terminal_vertex_t));
+    for (int offset = 0; offset < nVerts; )
+    {
+        int batchVerts = nVerts - offset;
+        if (batchVerts > DRAW_BATCH_MAX_VERTS)
+            batchVerts = DRAW_BATCH_MAX_VERTS;
+        mD3dDevice->DrawPrimitiveUP(
+            D3DPT_TRIANGLELIST,
+            batchVerts / 3,
+            s_terminalVerts + offset,
+            sizeof(terminal_vertex_t));
+        offset += batchVerts;
+    }
 
     mD3dDevice->EndScene();
 	mD3dDevice->Present(NULL, NULL, NULL, NULL);
