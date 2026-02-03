@@ -68,7 +68,7 @@
 				DontMountUD="TRUE"
 				NoLibWarn="TRUE"
 				TitleID="0x5452fffe"
-				TitleName="Hermes Menu"
+				TitleName="X-HD Updater"
 				TitleImage="$(ProjectDir)titleimage.xpr"
 				XBEVersion="1"/>
 		</Configuration>
