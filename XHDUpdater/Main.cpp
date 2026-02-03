@@ -48,12 +48,12 @@ DISPLAY_MODE displayModes[] =
 
 #define NUM_MODES (sizeof(displayModes) / sizeof(displayModes[0]))
 
-static void WaitButton(JoystickButton joystickButton)
+static void WaitButton(ControllerButton controllerButton)
 {
 	while (true)
 	{
 		InputManager::ProcessController();
-		if (InputManager::ButtonPressed(joystickButton))
+        if (InputManager::ControllerPressed(controllerButton, -1))
 		{
 			return;
 		}
@@ -72,11 +72,11 @@ static void InitTerminalBuffer()
 
     TerminalBuffer::Write("Encoder: ");
     HDHelper::EncoderEnum encoder = HDHelper::GetEncoder();
-    if (encoder = HDHelper::EncoderConexant) {
+    if (encoder == HDHelper::EncoderConexant) {
         TerminalBuffer::Write("Conexant\n");
-    } else if (encoder = HDHelper::EncoderFocus) {
+    } else if (encoder == HDHelper::EncoderFocus) {
         TerminalBuffer::Write("Focus\n");
-    } else if (encoder = HDHelper::EncoderXcalibur) {
+    } else if (encoder == HDHelper::EncoderXcalibur) {
         TerminalBuffer::Write("Xcalibur\n");
     }
 
@@ -113,9 +113,9 @@ static void InitTerminalBuffer()
     TerminalBuffer::Write("Note: screen will flash when changing X-HD mode.\n\n");
 
     TerminalBuffer::Write("Press A to Flash\n");
-    WaitButton(JoystickButtonA);
+    WaitButton(ControllerA);
     TerminalBuffer::Write("Press X to Confirm\n\n");
-    WaitButton(JoystickButtonX);
+    WaitButton(ControllerX);
 
     TerminalBuffer::Write("Entering Bootloader Mode: ");
     HDHelper::ChangeMode(I2C_HDMI_MODE_BOOTLOADER);
@@ -268,6 +268,6 @@ void __cdecl main()
 	InitTerminalBuffer();
 
     TerminalBuffer::Write("\nPress A to Exit");
-    WaitButton(JoystickButtonA);
+    WaitButton(ControllerA);
     HalReturnToFirmware(2);
 }
