@@ -80,21 +80,25 @@ static void InitTerminalBuffer()
         TerminalBuffer::Write("Xcalibur\n");
     }
 
-    TerminalBuffer::Write("Current Firmware: ");
-    uint32_t version = HDHelper::ReadVersion();
-    if (version == 0xFFFFFFFF)
+    uint8_t currentMode = HDHelper::GetMode();
+    if (currentMode == I2C_HDMI_MODE_APPLICATION)
     {
-        TerminalBuffer::Write("Not detected\n");
-        return;
-    }
-    else
-    {
-        char line[50];
-        _snprintf(line, sizeof(line), "%u.%u.%u\n",
-            (unsigned)((version >> 24) & 0xFF),
-            (unsigned)((version >> 16) & 0xFF),
-            (unsigned)((version >> 8) & 0xFF));
-        TerminalBuffer::Write(line);
+        TerminalBuffer::Write("Current Firmware: ");
+        uint32_t version = HDHelper::ReadVersion();
+        if (version == 0xFFFFFFFF)
+        {
+            TerminalBuffer::Write("Not detected\n");
+            return;
+        }
+        else
+        {
+            char line[50];
+            _snprintf(line, sizeof(line), "%u.%u.%u\n",
+                (unsigned)((version >> 24) & 0xFF),
+                (unsigned)((version >> 16) & 0xFF),
+                (unsigned)((version >> 8) & 0xFF));
+            TerminalBuffer::Write(line);
+        }
     }
 
     TerminalBuffer::Write("Firmware To Write: ");
@@ -117,9 +121,12 @@ static void InitTerminalBuffer()
     TerminalBuffer::Write("Press X to Confirm\n\n");
     WaitButton(ControllerX);
 
-    TerminalBuffer::Write("Entering Bootloader Mode: ");
-    HDHelper::ChangeMode(I2C_HDMI_MODE_BOOTLOADER);
-    TerminalBuffer::Write("Done\n");
+    if (currentMode == I2C_HDMI_MODE_APPLICATION)
+    {
+        TerminalBuffer::Write("Entering Bootloader Mode: ");
+        HDHelper::ChangeMode(I2C_HDMI_MODE_BOOTLOADER);
+        TerminalBuffer::Write("Done\n");
+    }
 
     if (HDHelper::FlashApplication(firmwareData, firmwareSize) == false)
     {
@@ -131,7 +138,7 @@ static void InitTerminalBuffer()
     TerminalBuffer::Write("Done\n");
 
     TerminalBuffer::Write("New Firmware: ");
-    version = HDHelper::ReadVersion();
+    uint32_t version = HDHelper::ReadVersion();
     if (version == 0xFFFFFFFF)
     {
         TerminalBuffer::Write("Not detected\n");

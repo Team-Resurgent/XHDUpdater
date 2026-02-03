@@ -112,6 +112,13 @@ uint8_t* HDHelper::LoadFirmware(uint32_t* firmwareSize)
     return firmwareData;
 }
 
+uint8_t HDHelper::GetMode()
+{
+    DWORD v;
+    HalReadSMBusByte(slaveAddr, I2C_HDMI_COMMAND_READ_MODE, &v);
+    return (uint8_t)v;
+}
+
 void HDHelper::ChangeMode(uint8_t mode)
 {
     const UCHAR slaveAddr = (UCHAR)(I2C_SLAVE_ADDR << 1);
@@ -121,9 +128,7 @@ void HDHelper::ChangeMode(uint8_t mode)
     {
         Sleep(500);
 
-        DWORD v;
-        HalReadSMBusByte(slaveAddr, I2C_HDMI_COMMAND_READ_MODE, &v);
-        if (v == mode)
+        if (GetMode() == mode)
         {
             break;
         }
