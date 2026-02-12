@@ -257,7 +257,9 @@ static void XHDProcess()
     if (currentMode == I2C_HDMI_MODE_APPLICATION)
     {
         TerminalBuffer::Write("Entering Bootloader Mode: ");
+        Sleep(1000);
         HDHelper::ChangeMode(I2C_HDMI_MODE_BOOTLOADER);
+        Sleep(1000);
         TerminalBuffer::Write("Done\n");
     }
 
@@ -267,7 +269,9 @@ static void XHDProcess()
     }
     
     TerminalBuffer::Write("Entering Application Mode: ");
+    Sleep(1000);
     HDHelper::ChangeMode(I2C_HDMI_MODE_APPLICATION);
+    Sleep(1000);
     TerminalBuffer::Write("Done\n");
 
     TerminalBuffer::Write("New Firmware: ");
@@ -350,7 +354,9 @@ static void HDPlusProcess()
     if (currentMode == HDPLUS_II2C_HDMI_MODE_APPLICATION)
     {
         TerminalBuffer::Write("Entering Bootloader Mode: ");
-        HDPlusHelper::ChangeMode(HDPLUS_II2C_HDMI_MODE_BOOTLOADER | HDPLUS_II2C_HDMI_MODE_ENABLE_FLASH, HDPLUS_II2C_HDMI_MODE_BOOTLOADER);
+        Sleep(1000);
+        HDPlusHelper::ChangeMode(HDPLUS_II2C_HDMI_MODE_BOOTLOADER | HDPLUS_II2C_HDMI_MODE_ENABLE_FLASH);
+        Sleep(1000);
         TerminalBuffer::Write("Done\n");
     }
 
@@ -360,7 +366,9 @@ static void HDPlusProcess()
     }
 
     TerminalBuffer::Write("Entering Application Mode: ");
-    HDPlusHelper::ChangeMode(HDPLUS_II2C_HDMI_MODE_APPLICATION | HDPLUS_II2C_HDMI_MODE_ENABLE_APPLICATION, HDPLUS_II2C_HDMI_MODE_ENABLE_APPLICATION);
+    Sleep(1000);
+    HDPlusHelper::ChangeMode(HDPLUS_II2C_HDMI_MODE_APPLICATION | HDPLUS_II2C_HDMI_MODE_ENABLE_APPLICATION);
+    Sleep(1000);
     TerminalBuffer::Write("Done\n");
 
     if (HDHelper::FlashBootloader(firmwareData, firmwareSize) == false)

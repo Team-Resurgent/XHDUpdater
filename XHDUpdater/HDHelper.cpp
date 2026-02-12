@@ -52,8 +52,6 @@ void HDHelper::ChangeMode(uint8_t mode)
     HalWriteSMBusByte(slaveAddr, I2C_HDMI_COMMAND_WRITE_SET_MODE, mode);
     while (true)
     {
-        Sleep(500);
-
         if (GetMode() == mode)
         {
             break;
@@ -109,7 +107,6 @@ void HDHelper::WritePage(uint8_t page, uint8_t* buffer)
     }
 
     HalWriteSMBusByte(slaveAddr, I2C_HDMI_COMMAND_WRITE_RAM_APPLY, page);
-    Sleep(250);
 }
 
 bool HDHelper::FlashApplication(uint8_t* firmware, uint32_t firmwareSize)
@@ -135,6 +132,8 @@ bool HDHelper::FlashApplication(uint8_t* firmware, uint32_t firmwareSize)
     uint8_t page = XHD_BOOTLOADER_BANK_START;
     while (bytesRemaining > 0)
     {
+        Sleep(1000);
+
         uint32_t chunkSize = min(bytesRemaining, 1024);
 
         memset(buffer, 0xff, 1024);
@@ -145,6 +144,7 @@ bool HDHelper::FlashApplication(uint8_t* firmware, uint32_t firmwareSize)
         {
             TerminalBuffer::Write("Writing Page: %i (%08x)", page, checksumBuffer);
             WritePage(page, buffer);
+            Sleep(1000);
             uint32_t checksumRam = ReadPageChecksum(page);
             if (checksumRam != checksumBuffer)
             {
@@ -190,6 +190,8 @@ bool HDHelper::FlashBootloader(uint8_t* firmware, uint32_t firmwareSize)
     uint8_t page = 0;
     while (bytesRemaining > 0)
     {
+        Sleep(1000);
+
         uint32_t chunkSize = min(bytesRemaining, 1024);
 
         memset(buffer, 0xff, 1024);
@@ -200,6 +202,7 @@ bool HDHelper::FlashBootloader(uint8_t* firmware, uint32_t firmwareSize)
         {
             TerminalBuffer::Write("Writing Page: %i (%08x)", page, checksumBuffer);
             WritePage(page, buffer);
+            Sleep(1000);
             uint32_t checksumRam = ReadPageChecksum(page);
             if (checksumRam != checksumBuffer)
             {

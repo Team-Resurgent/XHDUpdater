@@ -39,20 +39,11 @@ uint8_t HDPlusHelper::GetMode()
     return (uint8_t)v;
 }
 
-void HDPlusHelper::ChangeMode(uint8_t mode, uint8_t modeCheck)
+void HDPlusHelper::ChangeMode(uint8_t mode)
 {
     const UCHAR slaveAddr = (UCHAR)(HDPLUS_I2C_HDMI_ADDRESS1 << 1);
 
     HalWriteSMBusByte(slaveAddr, HDPLUS_I2C_HDMI_COMMAND_WRITE_SET_MODE, mode);
-    while (true)
-    {
-        Sleep(500);
-
-        if (GetMode() == modeCheck)
-        {
-            break;
-        }
-    }
 }
 
 void HDPlusHelper::WaitFlashReady()
@@ -63,15 +54,13 @@ void HDPlusHelper::WaitFlashReady()
 
     while (true)
     {
-        if (HalReadSMBusByte(slaveAddr, HDPLUS_I2C_HDMI_COMMAND_READ_READY1, &v1) != 0) {
-            continue;
-        }
-        Sleep(1);
-
         if (HalReadSMBusByte(slaveAddr, HDPLUS_I2C_HDMI_COMMAND_READ_READY2, &v2) != 0) {
             continue;
         }
-        Sleep(1);
+
+        if (HalReadSMBusByte(slaveAddr, HDPLUS_I2C_HDMI_COMMAND_READ_READY1, &v1) != 0) {
+            continue;
+        }
 
         break;
     }
@@ -85,7 +74,6 @@ bool HDPlusHelper::FlashOk()
     if (HalReadSMBusByte(slaveAddr, HDPLUS_I2C_HDMI_COMMAND_READ_FLASH_OK, &v) != 0) {
         return false;
     }
-    Sleep(1);
 
     return v == 0;
 }
@@ -95,15 +83,11 @@ void HDPlusHelper::WritePage(uint8_t page, uint8_t* buffer)
     const UCHAR slaveAddr = (UCHAR)(HDPLUS_I2C_HDMI_ADDRESS1 << 1);
 
     HalWriteSMBusByte(slaveAddr, HDPLUS_I2C_HDMI_COMMAND_WRITE_SET_PAGE, page);
-    Sleep(1);
 
     for (uint32_t i = 0; i < 1024; i++)
     {
         HalWriteSMBusByte(slaveAddr, HDPLUS_I2C_HDMI_COMMAND_WRITE_SET_FLASH, buffer[i]);
-        Sleep(1);
     }
-
-    Sleep(250);
 }
 
 bool HDPlusHelper::FlashApplication(uint8_t* firmware, uint32_t firmwareSize)
@@ -121,7 +105,7 @@ bool HDPlusHelper::FlashApplication(uint8_t* firmware, uint32_t firmwareSize)
     uint32_t firmwareOffset = 0;
     uint32_t bytesRemaining = customFirmwareSize;
     memset(customFirmware, 0xff, customFirmwareSize);
-    memcpy(customFirmware, firmware + XHD_BOOTLOADER_SIZE, 0x100);
+    memcpy(customFirmware, firmware + XHD_BOOTLOADER_SIZE, 0xC0);
     memcpy(customFirmware + 0x2800, firmware + XHD_BOOTLOADER_SIZE, firmwareSize - XHD_BOOTLOADER_SIZE);
 
     uint8_t* buffer = (uint8_t*)malloc(1024);
@@ -134,6 +118,10 @@ bool HDPlusHelper::FlashApplication(uint8_t* firmware, uint32_t firmwareSize)
     uint8_t page = 0;
     while (bytesRemaining > 0)
     {
+        Sleep(2000);
+        WaitFlashReady();
+        Sleep(1000);
+
         uint32_t chunkSize = min(bytesRemaining, 1024);
 
         memset(buffer, 0xff, 1024);
@@ -145,16 +133,15 @@ bool HDPlusHelper::FlashApplication(uint8_t* firmware, uint32_t firmwareSize)
             TerminalBuffer::Write("Writing Page: %i (%08x)", page + 10, checksumBuffer);
 
             HalWriteSMBusByte(slaveAddr, HDPLUS_I2C_HDMI_COMMAND_WRITE_PAGE_CRC1, (DWORD)(checksumBuffer & 0xFF));
-            Sleep(1);
             HalWriteSMBusByte(slaveAddr, HDPLUS_I2C_HDMI_COMMAND_WRITE_PAGE_CRC2, (DWORD)((checksumBuffer >> 8) & 0xFF));
-            Sleep(1);
             HalWriteSMBusByte(slaveAddr, HDPLUS_I2C_HDMI_COMMAND_WRITE_PAGE_CRC3, (DWORD)((checksumBuffer >> 16) & 0xFF));
-            Sleep(1);
             HalWriteSMBusByte(slaveAddr, HDPLUS_I2C_HDMI_COMMAND_WRITE_PAGE_CRC4, (DWORD)((checksumBuffer >> 24) & 0xFF));
-            Sleep(1);
+            Sleep(1000);
 
             WritePage(page, buffer);
+            Sleep(1000);
             WaitFlashReady();
+            Sleep(1000);
 
             bool flashOk = FlashOk();
             if (flashOk == false)
@@ -172,5 +159,6 @@ bool HDPlusHelper::FlashApplication(uint8_t* firmware, uint32_t firmwareSize)
     }
 
     free(buffer);
+    free(customFirmware);
     return true;
 }
